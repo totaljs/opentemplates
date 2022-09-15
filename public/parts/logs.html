@@ -1,0 +1,73 @@
+<style>
+	.~PATH~ .listing section { line-height: 14px; }
+</style>
+
+<div class="virtualwire hidden" data-if="~PATH~">
+	<div class="toolbar">
+		<button class="exec" data-exec="~PATH~/clear" data-bind="~PATH~.items.length__enabled" disabled><i class="far fa-trash-alt red"></i>@(Clear)</button>
+	</div>
+</div>
+
+<div class="~PATH~" data-scope="~PATH~">
+
+	<div data---="viewbox__common.page__scrollbar:1;margin:50;parent:window" class="invisible">
+
+		<div data---="empty__?.items__parent:auto" class="invisible">
+
+			<script type="text/html">
+				@(Logs section doesn't contain any records)
+			</script>
+
+			<div data---="search__?.search__selector:figure">
+				<div class="listing" data-bind="?.items__template" style="padding:10px">
+					<script type="text/html">
+						{{ foreach m in value }}
+						<figure class="fs12"">
+							<section style="cursor:default">
+								<div>
+									<span class="pull-right">{{ m.dtcreated | format('[ts]') }}</span>
+									<b>{{ m.profile }}</b> - {{ m.template }} ({{ m.output }})
+								</div>
+								{{ if m.error }}
+								<div class="red fs11 mt5"><i class="fas fa-exclamation-circle mr5"></i>{{ m.error }}</div>
+								{{ fi }}
+							</section>
+						</figure>
+						{{ end }}
+					</script>
+				</div>
+			</div>
+
+		</div>
+	</div>
+</div>
+
+<script>
+
+	Thelpers.duration = function(val) {
+		var sec = val / 1000;
+		return sec.toFixed(2) + ' @(sec.)';
+	};
+
+	PLUGIN('~PATH~', function(exports) {
+
+		exports.reload = function() {
+			exports.refresh();
+		};
+
+		exports.refresh = function() {
+			WAPI('logs', '?.items');
+		};
+
+		exports.clear = function() {
+			WAPI('logs_clear', NOOP);
+		};
+
+		ON('wapi', function(msg) {
+			if (msg.TYPE === 'logs')
+				exports.refresh();
+		});
+
+	});
+
+</script>

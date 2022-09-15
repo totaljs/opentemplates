@@ -1,0 +1,28 @@
+<div data---="miniform__common.form__if:~PATH~;icon:fas fa-envelope;title:@(Send test mail);autofocus:true;reload:?/reload;submit:?/submit;width:400" class="hidden" data-scope="~PATH~">
+	<div class="padding">
+		<div data---="input__?.email__required:1;type:multiline"></div>
+	</div>
+	<nav>
+		<button name="submit"><i class="fa fa-check-circle"></i>@(SUBMIT)</button>
+		<button name="cancel">@(Cancel)</button>
+	</nav>
+</div>
+
+<script>
+
+	PLUGIN('~PATH~', function(exports) {
+
+		exports.reload = function(com) {
+			SET('?.email', PREF.testemail || '@');
+		};
+
+		exports.submit = function(hide) {
+			var model = GET('?');
+			model.profileid = NAV.params[0];
+			PREF.set('testemail', model.email);
+			WAPI('templates_test @showloading', model, ASETTER('message/response @hideloading', '@(Mail message has been sent successfully'), hide));
+		};
+
+	});
+
+</script>

@@ -1,0 +1,285 @@
+<style>
+	.~PATH~ .items { padding: 0 10px; }
+	.~PATH~ .items figure { width: 20%; position: relative; display: inline-block; }
+	.~PATH~ .items section { border: 1px solid #E0E0E0; border-radius: var(--radius); padding: 10px; margin: 10px; cursor: pointer; }
+	.~PATH~ .items section:hover { background-color: #F0F0F0; }
+	.~PATH~ .items .icon { float: left; width: 18px; height: 18px; margin: 5px 0 0 5px; font-size: 18px; color: #A0A0A0; }
+	.~PATH~ .items .meta { margin: 5px 0 2px 35px; line-height: 16px; position: relative; font-size: 13px; }
+	.~PATH~ .items .controls { position: absolute; right: 20px; top: 25px; cursor: pointer; z-index: 1; width: 20px; line-height: 20px; text-align: center; font-size: 16px; }
+	.~PATH~ .items .date { font-size: 11px; color: #777; }
+	.~PATH~ .items .reference { font-size: 11px; color: #777; }
+</style>
+
+<div class="virtualwire hidden" data-if="~PATH~">
+	<div data---="searchinput__~PATH~.search__placeholder:@(Search)"></div>
+	<div class="toolbar">
+		<button class="exec" data-exec="~PATH~/create"><i class="fas fa-plus-circle green"></i>@(Add)</button>
+		<button class="exec" data-exec="~PATH~/menu"><i class="fas fa-cog"></i>@(Options)</button>
+	</div>
+</div>
+
+<div class="~PATH~" data-scope="~PATH~">
+	<div data---="viewbox__common.page__scrollbar:0;visibleY:0;margin:50;parent:window" class="invisible">
+
+		<div style="padding:10px 20px">
+
+			<div data-bind="?.layout__template">
+				<script type="text/html">
+					<div class="caption m">
+						<label><i class="fas fa-square" style="color:{{ value.color | empty('#E0E0E0') }}"></i>{{ value.name }}</label>
+					</div>
+					<div class="keyvalue">
+						<span>@(Reference)</span>
+						<div>: <b>{{ value.reference | empty }}</b></div>
+					</div>
+				</script>
+			</div>
+			<hr class="nmb" />
+		</div>
+
+		<div data---="search__?.search__selector:figure">
+
+			<div class="empty hidden" data-bind="?.data.items.length__hide" style="padding:0 10px">
+				<i class="fa fa-database"></i>
+				<div>@(Empty)</div>
+				<summary>
+					@(The profile doesn't contain any templates) &nbsp;<span class="exec link" data-exec="?/create"><i class="fa fa-plus-circle green mr5"></i>@(Add template)</span>
+				</summary>
+			</div>
+
+			<div class="items" data-bind="?.data.items__template">
+				<script type="text/html">
+					{{ foreach g in value }}
+						<div style="padding:0 10px 5px">
+							<div class="caption">
+								<label>@(Language:) <span class="badge badge-{{ if g.empty }}red{{ else }}color{{ fi }}">{{ g.name }}</span></label>
+							</div>
+						</div>
+						{{ foreach m in g.items }}
+						<figure data-id="{{ m.id }}" data-search="{{ m.name }} {{ m.reference }}">
+							<section class="exec" data-exec="?/html">
+								<div class="controls exec" data-exec="?/options" data-prevent="true">
+									<i class="fa fa-cog"></i>
+								</div>
+								<div class="icon"><i class="{{ m.icon }}"></i></div>
+								<div class="meta">
+									<div class="name">{{ if m.language }}<span class="badge badge-small badge-gray">{{ m.language }}</span> {{ fi }}<b>{{ m.name }}</b></div>
+									<div class="reference"><i class="far fa-copy mr5"></i><span class="exec" data-exec="?/copy" data-prevent="true">{{ m.reference | empty }}</span></div>
+								</div>
+							</section>
+						</figure>
+						{{ end }}
+						<div style="height:15px"></div>
+					{{ end }}
+				</script>
+			</div>
+		</div>
+
+	</div>
+</div>
+
+<script>
+
+	PLUGIN('~PATH~', function(exports) {
+
+		exports.reload = function() {
+			exports.refresh();
+		};
+
+		exports.refresh = function() {
+			WAPI('templates_list/{0} @showloading'.format(NAV.params[0]), function(response) {
+
+				var groups = {};
+				for (var item of response.items) {
+
+					var language = item.language || '000 @(Without language)';
+					if (groups[language])
+						groups[language].push(item);
+					else
+						groups[language] = [item];
+				}
+
+
+				var keys = Object.keys(groups);
+				keys.quicksort();
+
+				var output = [];
+				for (var key of keys) {
+					var items = groups[key];
+					var is = false;
+					if (key.substring(0, 4) === '000 ') {
+						key = key.substring(3);
+						is = true;
+					}
+					output.push({ name: key, items: items, empty: is });
+				}
+
+				response.items = output;
+				SET('?.data @hideloading', response);
+			});
+		};
+
+		exports.create = function() {
+			SET('templateform @default', { html: '<h1>{{ name' + ' }}</h1>', model: '{ name: \'Hello world!\' }', profileid: NAV.params[0] });
+			SET('common.form', 'templateform');
+		};
+
+		exports.options = function(el) {
+			var id = el.attrd2('id');
+			var opt = {};
+			opt.element = el;
+			opt.items = [];
+			opt.items.push({ id: 'edit', name: '@(Edit)', icon: 'fas fa-pencil' });
+			opt.items.push({ id: 'html', name: '@(Edit HTML)', icon: 'fas fa-code' });
+			opt.items.push({ id: 'clone', name: '@(Clone)', icon: 'fa fa-clone' });
+			opt.items.push('-');
+			opt.items.push({ id: 'remove', name: '@(Remove)', icon: 'fas fa-trash-alt red' });
+			opt.align = 'right';
+			opt.callback = function(selected) {
+				switch (selected.id) {
+					case 'edit':
+						exports.edit(id);
+						break;
+					case 'clone':
+						exports.clone(id);
+						break;
+					case 'html':
+						exports.html(id);
+						break;
+					case 'test':
+						SET('testform', { profileid: NAV.params[0], templateid: id });
+						SET('common.form', 'testform');
+						break;
+					case 'remove':
+						exports.remove(id);
+						break;
+				}
+			};
+			SETTER('menu/show', opt);
+		};
+
+		exports.menu = function(el) {
+			var id = NAV.params[0];
+			var opt = {};
+			opt.element = el;
+			opt.items = [];
+			opt.items.push({ id: 'edit', name: '@(Edit)', icon: 'fas fa-pencil' });
+			opt.items.push({ id: 'html', name: '@(Edit HTML)', icon: 'fas fa-code' });
+			opt.items.push({ id: 'export', name: '@(Export)', icon: 'fas fa-cloud-upload' });
+			opt.items.push('-');
+			opt.items.push({ id: 'remove', name: '@(Remove)', icon: 'fas fa-trash-alt red' });
+			opt.align = 'right';
+			opt.callback = function(selected) {
+				switch (selected.id) {
+					case 'edit':
+						exports.edit2(id);
+						break;
+					case 'export':
+						exports.export();
+						break;
+					case 'html':
+						exports.html2(id);
+						break;
+					case 'remove':
+						exports.remove2(id);
+						break;
+				}
+			};
+			SETTER('menu/show', opt);
+		};
+
+		exports.export = function() {
+			var id = NAV.params[0];
+			location.href = '/setup/backup/{0}/?token={1}'.format(id, encodeURIComponent(NAV.query.token));
+		};
+
+		exports.remove = function(el) {
+			var id = ATTRD(el);
+			SETTER('approve/show', '@(Are you sure you want to remove selected template?)', '"fa fa-trash-alt" @(Remove)', function() {
+				WAPI('templates_remove/{0}/{1}'.format(NAV.params[0], id), exports.refresh);
+			});
+		};
+
+		exports.clone = function(el) {
+			var id = ATTRD(el);
+			SETTER('approve/show', '@(Are you sure you want to clone selected template?)', '"fa fa-clone" @(Clone)', function() {
+				WAPI('templates_clone/{0}/{1}'.format(NAV.params[0], id), exports.refresh);
+			});
+		};
+
+		exports.edit = function(el) {
+			var id = ATTRD(el);
+			WAPI('templates_read/{0}/{1} @showloading'.format(NAV.params[0], id), ASETTER('message/response @hideloading', function(response) {
+				SET('templateform @reset', response);
+				SET('common.form', 'templateform');
+			}));
+		};
+
+		exports.html = function(el) {
+
+			var id = ATTRD(el);
+			var model = exports.model;
+
+			WAPI('templates_read/{0}/{1} @showloading'.format(NAV.params[0], id), ASETTER('message/response', function(response) {
+
+				var item = CLONE(response);
+				item.callback = function(model) {
+					response.html = model.html;
+					response.model = model.model;
+					WAPI('templates_save'.format(NAV.params[0], id), response);
+				};
+
+				model.data.helpers = model.layout.helpers;
+				model.data.model = model.layout.model;
+				model.data.secondary = model.layout.secondary;
+				item.layout = model.data;
+				SET('codeform @reset @hideloading', item);
+				SET('common.form', 'codeform');
+
+			}));
+		};
+
+
+		exports.remove2 = function(el) {
+			var id = ATTRD(el);
+			SETTER('approve/show', '@(Are you sure you want to remove selected profile?)', '"fa fa-trash-alt" @(Remove)', function() {
+				WAPI('profiles_remove/' + id, ASETTER('message/response', function() {
+					REDIRECT('../');
+				}));
+			});
+		};
+
+		exports.edit2 = function(el) {
+			var id = ATTRD(el);
+			WAPI('profiles_read/{0} @showloading'.format(id), ASETTER('message/response @hideloading', function(response) {
+				SET('profileform @reset', response);
+				SET('common.form', 'profileform');
+			}));
+		};
+
+		exports.html2 = function(el) {
+			var id = ATTRD(el);
+			WAPI('profiles_read/{0} @showloading'.format(id), function(response) {
+				var model = CLONE(response);
+				model.model = '{ body: \'A custom HTML content\' }';
+				model.callback = function(model) {
+					response.html = model.html;
+					response.model = model.model;
+					WAPI('profiles_save @showloading', response, function() {
+						NAV.refresh();
+					});
+				};
+				SET('codeform @reset @hideloading', model);
+				SET('common.form', 'codeform');
+			});
+		};
+
+		exports.copy = function(el) {
+			var val = el.text();
+			SETTER('clipboard/copy', val);
+			SETTER('notify/success', '@(Identifer <b>"{0}"</b> has been copied)'.format(val));
+		};
+
+	});
+
+</script>

@@ -1,0 +1,79 @@
+<div data---="largeform__common.form__if:~PATH~;title:@(Update HTML template);icon:fas fa-code;autofocus:true;reload:?/reload;scrollbar:1;submit:?/submit;width:960" class="hidden" data-scope="~PATH~">
+	<div class="padding">
+		<div data---="codemirror__?.html__height:500;linenumbers:false;type:tangular;required:1">@(HTML template)</div>
+		<div class="help m">@(Template supports Tangular template engine)</div>
+		<div data---="codemirror__?.model__height:100;linenumbers:false;type:javascript">@(Testing model)</div>
+		<div class="help m">@(The model must contain JavaScript object or array of objects)</div>
+	</div>
+	<nav data---="validation__?">
+		<button name="submit" disabled><i class="fa fa-check-circle"></i>@(SUBMIT)</button>
+		<button name="cancel">@(Cancel)</button>
+	</nav>
+</div>
+
+<script>
+
+	PLUGIN('~PATH~', function(exports) {
+
+		exports.reload = function(com) {
+			if (!com.$headerupdaed) {
+				com.$headerupdaed = true;
+				com.element.find('.ui-largeform-title').append('<div class="toolbar pull-right" style="margin:15px 15px 0 0"><button class="exec" data-exec="?/marketplace"><i class="fas fa-shopping-basket"></i>@(Marketplace)</button><button class="exec" data-exec="?/preview"><i class="fas fa-search"></i>@(Preview)</button></div>');
+			}
+		};
+
+		exports.marketplace = function() {
+			var app = exports.model.profileid ? 'opentemplates_templates' : 'opentemplates_layouts';
+			IMPORT('ONCE https://marketplace.totaljs.com/open/?app=' + app, AEXEC('marketplace/open', app, function(response) {
+				exports.scope();
+				SET('?.html @change', response);
+			}, true));
+		};
+
+		exports.preview = function(force) {
+
+			exports.scope();
+
+			var model = GET('?');
+			var obj = {};
+
+			if (model.model) {
+				try {
+					obj = new Function('return ' + model.model)();
+				} catch (e) {
+					console.error(e);
+				}
+			}
+
+			var secmodel = model.secondary || (model.layout ? model.layout.secondary : null);
+			var secondary = {};
+
+			if (secmodel) {
+				try {
+					secondary = new Function('return ' + secmodel)();
+				} catch (e) {
+					console.error(e);
+				}
+			}
+
+			if (force === true)
+				EXEC(true, 'preview/render', model.html, obj, model.layout, secondary);
+			else
+				EXEC('common/preview', model.html, obj, model.layout, secondary);
+		};
+
+		exports.submit = function(hide) {
+			var model = GET('?');
+			model.callback(model);
+			hide();
+		};
+
+		WATCH('?.html + ?.model', function() {
+			var win = common.windows.findItem('id', 'preview');
+			if (win && !win.hidden)
+				setTimeout2(exports.name, exports.preview, 1000, null, true);
+		});
+
+	});
+
+</script>

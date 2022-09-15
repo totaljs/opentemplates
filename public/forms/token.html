@@ -1,0 +1,42 @@
+<div data---="largeform__common.form__if:~PATH~;icon:fa fa-key;autofocus:1;reload:?/reload;scrollbar:1;submit:?/submit;width:600" class="hidden" data-scope="~PATH~">
+	<div class="padding">
+		<div data---="input__?.name__required:1" class="m">@(Name)</div>
+		<div data---="checkboxlist__?.profiles__datasource:pagesetup.profiles">@(Profiles)</div>
+	</div>
+	<nav data---="validation__?">
+		<button name="submit" disabled><i class="fa fa-check-circle"></i>@(SUBMIT)</button>
+		<button name="cancel">@(Cancel)</button>
+	</nav>
+</div>
+
+<script>
+
+	PLUGIN('~PATH~', function(exports) {
+
+		exports.reload = function(com) {
+			var model = GET('?');
+			var newbie = model ? model.newbie : null;
+			com.reconfigure({ title: newbie ? '@(Create token)' : '@(Update token)' });
+		};
+
+		exports.submit = function(hide) {
+
+			var model = GET('? @reset');
+			var setup = GET('pagesetup');
+			var index = setup.tokens ? setup.tokens.findIndex('token', model.token) : -1;
+
+			delete model.newbie;
+
+			if (index === -1) {
+				PUSH('pagesetup.tokens', model);
+			} else {
+				setup.tokens[index] = model;
+				UPD('pagesetup.tokens');
+			}
+
+			hide();
+		};
+
+	});
+
+</script>

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>OpenTemplates</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<style>
+		body { background: #F0F0F0; padding: 15px; font-family: Arial; font-size: 14px; color: #000; }
+		page { background: #FFF; display: block; margin: 0 auto; margin-bottom: 0.5cm; box-shadow: 0 0 20px #D0D0D0;  width: 21cm; min-height: 29.7cm; }
+		@media print {
+			body, page { padding: 0; margin: 0; box-shadow: 0; background: #FFF; }
+		}
+	</style>
+</head>
+<body>
+
+	<page>
+		{{ body | raw }}
+	</page>
+
+</body>
+</html>

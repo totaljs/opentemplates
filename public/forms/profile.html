@@ -1,0 +1,53 @@
+<div data---="largeform__common.form__if:~PATH~;icon:fas fa-laptop-code;autofocus:true;reload:?/reload;scrollbar:1;submit:?/submit;width:640" class="hidden" data-scope="~PATH~">
+	<div>
+		<div class="padding">
+			<div data---="input__?.name__required:1" class="m">@(Name)</div>
+			<div class="row">
+				<div class="col-md-4 m">
+					<div data---="input__?.reference__null__''">@(Reference)</div>
+				</div>
+				<div class="col-md-4 m">
+					<div data---="input__?.color__type:color__'#4285F4'">@(Color)</div>
+				</div>
+				<div class="col-md-4 m">
+					<div data---="input__?.icon__type:icon__'far fa-file-alt'">@(Icon)</div>
+				</div>
+			</div>
+		</div>
+		<hr class="nmt nmb" />
+		<div class="padding">
+			<div data---="codemirror__?.secondary__height:100;linenumbers:false;type:javascript__'{ key: \'Something\' }'">@(Secondary model)</div>
+			<div class="help m">@(A secondary model can be used in all Tangular templates in the form <code>$.key</code>.)</div>
+			<div data---="codemirror__?.helpers__height:100;linenumbers:false;type:javascript__'{\n\tdateformat: val => val.format(\'yyyy-MM-dd\')\n}'">@(Tangular helpers)</div>
+			<div class="help m">@(A custom Tangular template engine helpers.)</div>
+		</div>
+	</div>
+	<nav data---="validation__?">
+		<button name="submit" disabled><i class="fa fa-check-circle"></i>@(SUBMIT)</button>
+		<button name="cancel">@(Cancel)</button>
+	</nav>
+</div>
+
+<script>
+
+	PLUGIN('~PATH~', function(exports) {
+
+		exports.reload = function(com) {
+			var model = GET('?');
+			var id = model ? model.id : null;
+			com.reconfigure({ title: id ? '@(Update profile)' : '@(Create profile)' });
+		};
+
+		exports.submit = function(hide) {
+			var model = GET('? @reset');
+			WAPI('profiles_save @showloading', model, ASETTER('message/response @hideloading', function(response) {
+				NAV.refresh();
+				if (!model.id)
+					setTimeout(AEXEC('pageprofiles/html', response.value), 1000);
+				hide();
+			}));
+		};
+
+	});
+
+</script>

@@ -1,0 +1,179 @@
+<style>
+	.~PATH~ .items { padding: 10px; }
+	.~PATH~ .items figure { width: 25%; position: relative; display: inline-block; }
+	.~PATH~ .items section { border: 2px solid #E0E0E0; border-radius: var(--radius); padding: 10px; margin: 10px; cursor: pointer; }
+	.~PATH~ .items section:hover { background-color: #F0F0F0; }
+	.~PATH~ .items .color { float: left; width: 18px; height: 18px; margin: 5px 0 0 5px; background-color: #E0E0E0; border-radius: var(--radius); }
+	.~PATH~ .items .meta { margin: 5px 0 2px 35px; line-height: 16px; position: relative; font-size: 15px; }
+	.~PATH~ .items .controls { position: absolute; right: 20px; top: 25px; cursor: pointer; z-index: 1; width: 20px; line-height: 20px; text-align: center; font-size: 16px; }
+	.~PATH~ .items .smtp { font-size: 11px; color: #777; }
+	.~PATH~ .items .reference { font-size: 11px; color: #777; margin: 8px 0 0; padding: 3px 0 0; border-top: 1px solid #E0E0E0; }
+</style>
+
+<div class="virtualwire hidden" data-if="~PATH~">
+	<div data---="searchinput__~PATH~.search__placeholder:@(Search)"></div>
+	<div class="toolbar">
+		<button class="exec" data-exec="~PATH~/create"><i class="fas fa-plus-circle green"></i>@(Create)</button>
+		<button class="exec" data-exec="~PATH~/import"><i class="fa fa-cloud-download-alt"></i>@(Import)</button>
+	</div>
+</div>
+
+<div class="~PATH~" data-scope="~PATH~">
+
+	<div data---="viewbox__common.page__scrollbar:0;visibleY:0;margin:50;parent:window" class="invisible">
+
+		<div data---="empty__?.items__parent:auto" class="invisible">
+
+			<script type="text/html">
+				@(OpenTemplates doesn't contain any profiles)
+			</script>
+
+			<div data---="search__?.search__selector:figure">
+				<div class="padding items" data-bind="?.items__template:figure">
+					<script type="text/html">
+						{{ foreach m in value }}
+						<figure data-id="{{ m.id }}" data-search="{{ m.name }} {{ m.reference }}">
+							<section class="exec" data-exec="?/templates"{{ if m.smtp_error }} style="border-color:red"{{ fi }}>
+								<div class="controls exec" data-exec="?/options" data-prevent="true">
+									<i class="fa fa-cog"></i>
+								</div>
+								<div class="color" style="background:{{ m.color | empty('#E0E0E0') }}"></div>
+								<div class="meta">
+									<div class="name b">{{ m.name }}</div>
+									<div class="reference">ID: <b>{{ m.reference | empty(m.id) }}</b></div>
+								</div>
+							</section>
+						</figure>
+						{{ end }}
+					</script>
+				</div>
+			</div>
+
+		</div>
+	</div>
+</div>
+
+<script>
+
+	PLUGIN('~PATH~', function(exports) {
+
+		exports.reload = function() {
+			exports.refresh();
+		};
+
+		exports.refresh = function() {
+			WAPI('profiles_list', '?.items');
+		};
+
+		exports.create = function() {
+			AJAX('GET /html.txt @showloading', function(response) {
+				SET('profileform @default @hideloading', { html: response });
+				SET('common.form', 'profileform');
+			});
+		};
+
+		exports.options = function(el, e) {
+			var id = ATTRD(el);
+			var opt = {};
+			opt.element = el;
+			opt.items = [];
+			opt.items.push({ id: 'edit', name: '@(Edit)', icon: 'fas fa-pencil' });
+			opt.items.push({ id: 'html', name: '@(Edit HTML layout)', icon: 'fas fa-code' });
+			opt.items.push({ id: 'test', name: '@(Test SMTP server)', icon: 'fas fa-envelope' });
+			opt.items.push({ id: 'clone', name: '@(Clone)', icon: 'fa fa-clone' });
+			opt.items.push({ id: 'export', name: '@(Export)', icon: 'fas fa-cloud-upload' });
+			opt.items.push('-');
+			opt.items.push({ id: 'remove', name: '@(Remove)', icon: 'fas fa-trash-alt red' });
+			opt.align = 'right';
+			opt.callback = function(selected) {
+				switch (selected.id) {
+					case 'edit':
+						exports.edit(id);
+						break;
+					case 'html':
+						exports.html(id);
+						break;
+					case 'export':
+						exports.export(id);
+						break;
+					case 'clone':
+						exports.clone(id);
+						break;
+					case 'test':
+						exports.test(id);
+						break;
+					case 'remove':
+						exports.remove(id);
+						break;
+				}
+			};
+			SETTER('menu/show', opt);
+		};
+
+		exports.templates = function(el) {
+			var id = ATTRD(el);
+			REDIRECT('/profiles/' + id);
+		};
+
+		exports.remove = function(el) {
+			var id = ATTRD(el);
+			SETTER('approve/show', '@(Are you sure you want to remove selected profile?)', '"fa fa-trash-alt" @(Remove)', function() {
+				WAPI('profiles_remove/' + id, exports.refresh);
+			});
+		};
+
+		exports.import = function() {
+			var opt = {};
+			opt.multiple = false;
+			opt.url = '/setup/restore/?token=' + encodeURIComponent(NAV.query.token);
+			opt.accept = 'text/plain';
+			opt.callback = ASETTER('message/response @hideloading', '@(The file has been imported successfully)', exports.refresh);
+			SETTER('fileuploader/upload @showloading', opt);
+		};
+
+		exports.clone = function(el) {
+			var id = ATTRD(el);
+			SETTER('approve/show', '@(Are you sure you want to clone selected profile?)', '"fa fa-clone" @(Clone)', function() {
+				WAPI('profiles_clone/{0} @showloading'.format(id), ASETTER('message/response @hideloading', exports.refresh));
+			});
+		};
+
+		exports.edit = function(el) {
+			var id = ATTRD(el);
+			WAPI('profiles_read/{0} @showloading'.format(id), ASETTER('message/response @hideloading', function(response) {
+				SET('profileform @reset', response);
+				SET('common.form', 'profileform');
+			}));
+		};
+
+		exports.export = function(el) {
+			var id = ATTRD(el);
+			location.href = '/setup/backup/{0}/?token={1}'.format(id, encodeURIComponent(NAV.query.token));
+		};
+
+		exports.html = function(el) {
+			var id = ATTRD(el);
+			WAPI('profiles_read/{0} @showloading'.format(id), function(response) {
+				var model = CLONE(response);
+				model.model = '{ body: \'A custom HTML content\' }';
+				model.callback = function(model) {
+					response.html = model.html;
+					response.model = model.model;
+					WAPI('profiles_save', response);
+				};
+				SET('codeform @reset @hideloading', model);
+				SET('common.form', 'codeform');
+			});
+		};
+
+		exports.test = function(el) {
+			var id = ATTRD(el);
+			WAPI('profiles_test/{0} @showloading'.format(id), ASETTER('message/response @hideloading', '@(SMTP server is configured correctly)'));
+		};
+
+		exports.redirect = function(url) {
+		};
+
+	});
+
+</script>
