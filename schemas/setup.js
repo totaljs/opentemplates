@@ -43,10 +43,10 @@ NEWSCHEMA('Setup', function(schema) {
 
 		var data = CLONE(PREF);
 
-		if (data.tokens) {
-			for (var token of data.tokens)
-				token.stats = MAIN.stats[token.token];
-		}
+		// if (data.tokens) {
+		// 	for (var token of data.tokens)
+		// 		token.stats = MAIN.stats[token.token];
+		// }
 
 		data.profiles = [];
 
