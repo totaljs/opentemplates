@@ -155,6 +155,7 @@ FUNC.render = function(model, $) {
 				case 'pdf':
 				case 'jpg':
 				case 'png':
+				case 'docx':
 					TotalAPI('print', { type: model.output, html: arg.html }, $);
 					break;
 				default:

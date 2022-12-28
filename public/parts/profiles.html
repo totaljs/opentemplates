@@ -79,7 +79,6 @@
 			opt.items = [];
 			opt.items.push({ id: 'edit', name: '@(Edit)', icon: 'fas fa-pencil' });
 			opt.items.push({ id: 'html', name: '@(Edit HTML layout)', icon: 'fas fa-code' });
-			opt.items.push({ id: 'test', name: '@(Test SMTP server)', icon: 'fas fa-envelope' });
 			opt.items.push({ id: 'clone', name: '@(Clone)', icon: 'fa fa-clone' });
 			opt.items.push({ id: 'export', name: '@(Export)', icon: 'fas fa-cloud-upload' });
 			opt.items.push('-');
@@ -125,10 +124,10 @@
 		exports.import = function() {
 			var opt = {};
 			opt.multiple = false;
-			opt.url = '/setup/restore/?token=' + encodeURIComponent(NAV.query.token);
+			opt.url = '/setup/restore/?token=' + encodeURIComponent(NAV.query.token) + ' @showloading';
 			opt.accept = 'text/plain';
-			opt.callback = ASETTER('message/response @hideloading', '@(The file has been imported successfully)', exports.refresh);
-			SETTER('fileuploader/upload @showloading', opt);
+			opt.callback = ASETTER('message/response', '@(The file has been imported successfully)', exports.refresh);
+			SETTER('fileuploader/upload', opt);
 		};
 
 		exports.clone = function(el) {

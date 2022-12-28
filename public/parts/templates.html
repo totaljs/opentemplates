@@ -146,10 +146,6 @@
 					case 'html':
 						exports.html(id);
 						break;
-					case 'test':
-						SET('testform', { profileid: NAV.params[0], templateid: id });
-						SET('common.form', 'testform');
-						break;
 					case 'remove':
 						exports.remove(id);
 						break;

@@ -18,15 +18,14 @@
 		exports.reload = function(com) {
 			if (!com.$headerupdaed) {
 				com.$headerupdaed = true;
-				com.element.find('.ui-largeform-title').append('<div class="toolbar pull-right" style="margin:15px 15px 0 0"><button class="exec" data-exec="?/marketplace"><i class="fas fa-shopping-basket"></i>@(Marketplace)</button><button class="exec" data-exec="?/preview"><i class="fas fa-search"></i>@(Preview)</button></div>');
+				com.element.find('.ui-largeform-title').append('<div class="toolbar pull-right" style="margin:15px 15px 0 0"><button class="exec" data-exec="?/enterprise"><i class="ti ti-totaljs"></i>@(Enterprise)</button><button class="exec" data-exec="?/preview"><i class="fas fa-search"></i>@(Preview)</button></div>');
 			}
 		};
 
-		exports.marketplace = function() {
+		exports.enterprise = function() {
 			var app = exports.model.profileid ? 'opentemplates_templates' : 'opentemplates_layouts';
-			IMPORT('ONCE https://marketplace.totaljs.com/open/?app=' + app, AEXEC('marketplace/open', app, function(response) {
-				exports.scope();
-				SET('?.html @change', response);
+			IMPORT('ONCE https://enterprise.totaljs.com/open/?app=' + app, AEXEC('enterprise/open', app, function(response) {
+				exports.set('html @change', response);
 			}, true));
 		};
 
