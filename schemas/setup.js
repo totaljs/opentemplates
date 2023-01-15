@@ -12,7 +12,7 @@ NEWSCHEMA('Setup', function(schema) {
 	schema.define('tokens', '[Token]');
 	schema.define('log', Boolean);
 	schema.define('log_requests', Boolean);
-	schema.define('totalapi', String, true);
+	schema.define('totalapi', String);
 	schema.define('allow_tms', Boolean);
 	schema.define('secret_tms', String);
 	schema.define('resend', '[String]');
