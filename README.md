@@ -1,6 +1,6 @@
 # OpenTemplates
 
-__OpenTemplates__ is a lightweight app for creating HTML templates which can be used by 3rd party apps.
+__OpenTemplates__ is a lightweight app for creating HTML templates that can be printed as PDF/DOCX/JPG files.
 
 - [Documentation](https://docs.totaljs.com/opentemplates/)
 - MIT license
