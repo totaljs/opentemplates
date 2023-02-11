@@ -7,8 +7,8 @@ exports.install = function() {
 };
 
 function index() {
-	if (PREF.token)
-		this.plain(MAIN.name + ' v' + MAIN.version);
+	if (CONF.token)
+		this.plain(CONF.name);
 	else
 		this.redirect('/setup/');
 }

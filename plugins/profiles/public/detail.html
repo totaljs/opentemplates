@@ -1,0 +1,267 @@
+<style>
+	.CLASS .listing2 { column-gap: 7px; }
+	.CLASS .listing2 figure { margin-bottom: 7px; background-color: #FFC16E2E !important; }
+	.CLASS .listing2 figure:hover { filter:brightness(0.9); }
+	.CLASS .controls { border-left: 1px solid rgba(0,0,0,0.1); padding: 0 8px 0 15px; line-height: 40px; height: 40px; }
+	.CLASS .name {}
+	.CLASS .icon { border-right: 1px solid rgba(0,0,0,0.1); margin-right: 8px; padding-right: 8px; }
+	.CLASS .reference { font-size: 12px; color: #888; cursor: pointer; }
+</style>
+
+<ui-plugin config="aclass:1">
+
+	<header>
+		<a href="../" class="back jR"><i class="ti ti-angle-left"></i></a>
+		<ui-bind path="!?.meta" config="template">
+			<script type="text/html">
+				<label><i class="{{ value.icon }}" style="color:{{ value.color }}"></i></i>{{ value.name }}</label>
+			</script>
+		</ui-bind>
+		<div class="toolbar">
+			<button class="exec" data-exec="?/importer"><i class="ti ti-cloud-upload"></i>@(Import)</button>
+			<button class="exec" data-exec="?/refresh"><i class="ti ti-refresh"></i>@(Refresh)</button>
+			<button class="exec b" data-exec="?/create"><i class="ti ti-plus-circle"></i>@(Create)</button>
+		</div>
+	</header>
+
+	<ui-component name="viewbox" config="parent:auto;margin:60" class="invisible">
+		<div>
+			<div class="padding">
+
+				<ui-component name="empty" path="?.items" config="parent:auto">
+
+					<script type="text/html">
+						<div>@(The profile doesn't contain any templates)</div>
+						<div class="mt5">
+							<span class="link exec" data-exec="?/create"><i class="ti ti-plus-circle green mr5"></i>@(Create first)</span>
+						</div>
+					</script>
+
+					<div>
+						<div class="m">
+							<div style="max-width:250px;width:100%">
+								<ui-component name="searchinput" path="?.search" config="autofocus:1;placeholder:@(Search)"></ui-component>
+							</div>
+						</div>
+						<ui-component name="search" path="?.search" config="selector:figure;datasource:?.list">
+							<ui-bind path="?.items" config="template" class="block">
+								<script type="text/html">
+									{{ foreach g in value }}
+										{{ if g.name }}
+										<div class="caption m">
+											<label>{{ g.name }}</label>
+										</div>
+										{{ else }}
+										<div style="height:5px"></div>
+										{{ fi }}
+										<div class="listing2 m grid-4 grid-md-2 grid-sm-2 grid-xs-1">
+										{{ foreach m in g.items }}
+											<figure class="exec" data-exec="?/html" data-id="{{ m.id }}" data-search="{{ m.name }}">
+												<section>
+													<div class="pull-right controls">
+														<span class="exec" data-exec="?/options" data-prevent="true"><i class="ti ti-cog"></i></span>
+													</div>
+													<div>
+														<div class="pull-left icon" style="{{ if m.color }}color:{{ m.color }}{{ fi }}"><i class="{{ m.icon }}"></i></div>
+														<div class="name">{{ m.name }}</div>
+														<div class="reference"><span class="exec" data-exec="?/copy" data-prevent="true"><i class="ti ti-copy mr5"></i>{{ m.reference }}</span></div>
+													</div>
+												</section>
+											</figure>
+										{{ end }}
+										</div>
+									{{ end }}
+								</script>
+							</ui-bind>
+						</ui-component>
+					</div>
+
+				</ui-component>
+			</div>
+		</div>
+	</ui-component>
+
+</ui-plugin>
+
+<ui-component name="importer" path="common.form" config="if:formtemplate;url:@{#}/_profiles/forms/template.html"></ui-component>
+
+<script>
+	PLUGIN(function(exports) {
+
+		var ID;
+
+		exports.reload = function() {
+			ID = NAV.params[0];
+			exports.refresh();
+		};
+
+		exports.refresh = function() {
+
+			exports.tapi('profiles_read/{0} ERROR'.format(ID), function(response) {
+
+				exports.set('meta', response);
+
+				response.items = [];
+
+				for (var key in response.templates) {
+					response.templates[key].color = response.color;
+					response.items.push(response.templates[key]);
+				}
+
+				var output = [];
+				var groups = {};
+
+				response.items.quicksort('name');
+
+				for (var item of response.items) {
+					var key = item.group || 'default';
+					if (groups[key])
+						groups[key].push(item);
+					else
+						groups[key] = [item];
+				}
+
+				var def = groups.default;
+				if (def) {
+					output.push({ id: '', items: def });
+					delete groups.default;
+				}
+
+				var keys = Object.keys(groups);
+
+				keys.quicksort();
+
+				for (var key of keys)
+					output.push({ id: key, name: key, items: groups[key] });
+
+				exports.set('%groups', keys);
+				exports.set('items @hideloading', output);
+				exports.set('list', response.items);
+
+			}, function() {
+				REDIRECT('../');
+			});
+
+		};
+
+		exports.create = function() {
+			exports.ajax('GET @{#}/template.txt', function(response) {
+				SET('formtemplate @default', { html: response });
+				SET('common.form', 'formtemplate');
+			});
+		};
+
+		exports.copy = function(el) {
+			var model = exports.model;
+			var id = ATTRD(el);
+			var item = model.list.findItem('id', id);
+			EXEC('-clipboard/copy', item.reference);
+			EXEC('-notify/success', '@(Copied)');
+		};
+
+		exports.html = function(el) {
+			var id = ATTRD(el);
+			exports.tapi('templates_read/{0}/{1} ERROR'.format(ID, id), function(response) {
+
+				var model = exports.model;
+				var data = {};
+				data.layout =  model.meta.html || '';
+				data.html = response.html || '';
+				data.preview ='';
+				data.callback = function(value) {
+					exports.tapi('templates_html/{0}/{1} ERROR'.format(ID, id), { html: value }, exports.refresh);
+				};
+
+				SET('formcode', data);
+				SET('common.form', 'formcode');
+			});
+		};
+
+		exports.options = function(el) {
+			var id = ATTRD(el);
+
+			var opt = {};
+			opt.items = [];
+
+			opt.items.push({ id: 'copy', name: '@(Copy identifier)', icon: 'ti ti-copy', classname: 'b' });
+			opt.items.push({ id: 'edit', name: '@(Edit)', icon: 'ti ti-pencil-alt' });
+			opt.items.push({ id: 'html', name: '@(Update template)', icon: 'ti ti-html5' });
+			opt.items.push('-');
+			opt.items.push({ id: 'clone', name: '@(Clone)', icon: 'ti ti-clone' });
+			opt.items.push({ id: 'export', name: '@(Export)', icon: 'ti ti-file-export' });
+			opt.items.push('-');
+			opt.items.push({ id: 'remove', name: '@(Remove)', icon: 'ti ti-trash red' });
+
+			opt.align = 'right';
+			opt.position = 'top';
+			opt.element = el;
+			opt.callback = function(selected) {
+				switch (selected.id) {
+					case 'export':
+					case 'html':
+					case 'copy':
+					case 'clone':
+					case 'edit':
+						exports[selected.id](id);
+						break;
+					case 'remove':
+						EXEC('-approve/show', '@(Are you sure you want to remove the selected template?)', '"ti ti-trash" @(Remove)', function() {
+							exports.tapi('templates_remove/{0}/{1} @showloading ERROR'.format(NAV.params[0], id), function() {
+								exports.refresh();
+								EXEC('-notify/success @hideloading', '@(The selected template has been removed successfully.)');
+							});
+						});
+						break;
+				}
+
+			};
+			SETTER('menu', 'show', opt);
+		};
+
+		exports.edit = function(el) {
+			var id = ATTRD(el);
+			exports.tapi('templates_read/{0}/{1}'.format(ID, id), function(response) {
+				SET('formtemplate @reset', response);
+				SET('common.form', 'formtemplate');
+			});
+		};
+
+		exports.clone = function(el) {
+			var id = ATTRD(el);
+			exports.tapi('templates_clone/{0}/{1}'.format(ID, id), function(response) {
+				exports.refresh();
+				exports.edit(response.value);
+				EXEC('-notify/success @hideloading', '@(The template has been cloned successfully.)');
+			});
+		};
+
+		exports.importer = function() {
+			var opt = {};
+			opt.accept = 'application/json';
+			opt.callback = function(file) {
+				var data = PARSE(file.body);
+				exports.tapi('templates_import/{0} ERROR'.format(ID), data, function() {
+					SETTER('notify/success', '@(Template <b>{name}</b> has been imported successfully.)'.args(data, 'escape'));
+					exports.refresh();
+				});
+			};
+			SETTER('filereader/open', opt);
+		};
+
+		exports.export = function(el) {
+			var id = ATTRD(el);
+			exports.tapi('templates_export/{0}/{1}'.format(ID, id), function(obj) {
+				SETTER('filesaver/save', obj.name + '.json', JSON.stringify(obj, null, '\t'));
+			});
+		};
+
+		exports.exportall = function(el) {
+			var id = ATTRD(el);
+			exports.tapi('profiles_export/{0}'.format(ID), function(obj) {
+				SETTER('filesaver/save', obj.name + '.json', JSON.stringify(obj, null, '\t'));
+			});
+		};
+
+	});
+
+</script>

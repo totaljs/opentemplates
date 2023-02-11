@@ -1,0 +1,45 @@
+<ui-component name="miniform" path="common.form" config="if:~PATH~;icon:ti ti-file-alt;autofocus:true;reload:?/reload;scrollbar:1;submit:?/submit;width:420" class="hidden" plugin="~PATH~">
+	<div>
+		<div class="padding">
+			<div class="grid-2">
+				<div>
+					<ui-component name="input" path="?.reference" config="align:1;required:1;monospace:1;placeholder:@(invoice)" default="''">@(Identifier)</ui-component>
+				</div>
+			</div>
+			<hr />
+			<div>
+				<ui-component name="input" path="?.name" config="required:1;placeholder:@(Enter a template name)" class="m">@(Name)</ui-component>
+				<ui-component name="input" path="?.group" config="dirsource:%groups;dircustom:1;dirminwidth:200;dirempty:@(Without group);placeholder:@(Enter a group name);dirplaceholder:@(Choose group or enter new);icon:ti ti-folder" default="''">@(Group)</ui-component>
+			</div>
+		</div>
+	</div>
+	<nav>
+		<ui-component name="validate" path="?">
+			<button name="submit" disabled><i class="ti ti-check-circle"></i>@(SUBMIT)</button>
+			<button name="cancel">@(Cancel)</button>
+		</ui-component>
+	</nav>
+</ui-component>
+
+<script>
+
+	PLUGIN(function(exports) {
+
+		exports.reload = function(com) {
+			var model = exports.model;
+			var id = model ? model.id : null;
+			com.reconfigure({ title: id ? '@(Update template)' : '@(Add template)' });
+		};
+
+		exports.submit = function(hide) {
+			var model = exports.form;
+			exports.tapi('templates_{0} ERROR'.format(model.id ? ('update/{0}/{1}'.format(NAV.params[0], model.id)) : ('create/{0}'.format(NAV.params[0]))), model, function() {
+				NAV.refresh();
+				hide();
+			});
+
+		};
+
+	});
+
+</script>

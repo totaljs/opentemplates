@@ -1,0 +1,34 @@
+<ui-component name="miniform" path="common.form" config="if:~PATH~;icon:ti ti-key;autofocus:true;reload:?/reload;submit:?/submit;width:400" class="hidden ~PATH~" plugin="~PATH~">
+	<div class="padding">
+		<ui-component name="input" path="?.name" config="required:1;placeholder:@(Enter a token name)" class="m">@(Name)</ui-component>
+		<ui-component name="input" path="?.token" config="required:1;camouflage:1;minlength:5;maxlength:50">@(Access token)</ui-component>
+	</div>
+	<nav>
+		<ui-component name="validate" path="?">
+			<button name="submit" disabled><i class="ti ti-check-circle"></i>@(SUBMIT)</button>
+			<button name="cancel">@(Cancel)</button>
+		</ui-component>
+	</nav>
+</ui-component>
+
+<script>
+
+	PLUGIN(function(exports) {
+
+		exports.reload = function(com) {
+			var model = exports.model;
+			var id = model ? model.id : null;
+			com.reconfigure({ title: id ? '@(Update token)' : '@(Create token)' });
+		};
+
+		exports.submit = function(hide) {
+			var model = exports.form;
+			exports.tapi('tokens_{0}'.format(model.id ? ('update/' + model.id) : 'create'), model, function() {
+				exports.caller.exec('refresh');
+				hide();
+			});
+		};
+
+	});
+
+</script>

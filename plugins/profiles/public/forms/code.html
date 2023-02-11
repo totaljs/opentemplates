@@ -1,0 +1,88 @@
+<ui-component name="box" path="common.form" config="if:~PATH~;title:@(Update template);icon:ti ti-html5 orange;reload:?/reload;submit:?/submit;scrollbar:0;width:5120" class="hidden ~PATH~" plugin="~PATH~">
+	<nav>
+		<button class="exec" data-exec="?/printer"><i class="ti ti-print"></i>@(Printer)</button>
+	</nav>
+	<div>
+		<ui-component name="columns" path="null" config="parent:.ui-box-body" class="hidden invisible">
+			<section data-size="50%">
+				<ui-component name="cloudeditorsimple" path="?.html" config="realtime:1;parent:parent;margin:0"></ui-component>
+			</section>
+			<section>
+				<ui-component name="viewbox" path="common.form" config="parent:auto" class="invisible">
+					<ui-component name="iframepreview" path="?.preview"></ui-component>
+				</ui-component>
+			</section>
+		</ui-component>
+	</div>
+	<nav>
+		<button name="submit"><i class="ti ti-check-circle"></i>@(SUBMIT)</button>
+		<button name="cancel">@(Cancel)</button>
+	</nav>
+</ui-component>
+
+<script>
+
+	PLUGIN(function(exports) {
+
+		var layout = null;
+		var islayout = false;
+
+		var preview = function(value, preview) {
+
+			var html = '';
+
+			if (value) {
+				var template = FUNC.parsetemplate(value);
+				var second = layout ? layout.model : { preview: preview };
+
+				if (layout && layout.helpers) {
+					for (var key in layout.helpers)
+						template.helpers[key] = layout.helpers[key];
+				}
+
+				html = template.template({ value: islayout ? '' : template.model }, second, template.helpers);
+			}
+
+			if (layout) {
+				if (layout.model)
+					layout.model = {};
+				layout.model.preview = preview;
+				html = layout.template({ value: html }, layout.model, layout.helpers);
+			}
+
+			return html;
+		};
+
+		exports.reload = function() {
+			var model = exports.model;
+			layout = model.layout ? FUNC.parsetemplate(model.layout) : null;
+			islayout = model.islayout;
+			exports.set('preview', preview(model.html, true));
+		};
+
+		exports.submit = function(hide) {
+			var model = exports.model;
+			hide();
+			setTimeout(() => model.callback(model.html), 500);
+		};
+
+		exports.printer = function(el) {
+			var model = exports.model;
+			var opt = {};
+			opt.align = 'right';
+			opt.element = el;
+			opt.items = [];
+			opt.items.push({ id: 'pdf', icon: 'ti ti-file-pdf', name: '@(Print to PDF)' });
+			opt.items.push({ id: 'jpg', icon: 'ti ti-file-image', name: '@(Print to JPG)' });
+			opt.items.push({ id: 'docx', icon: 'ti ti-file-word', name: '@(Print to DOCX)' });
+			opt.callback = function(selected) {
+				SETTER('formdata/send', { url: '/api/printer/', data: { type: selected.id, html: preview(model.html, false) }});
+			};
+			SETTER('menu/show', opt);
+		};
+
+		exports.watch('html', html => exports.set('preview', preview(html, true)));
+
+	});
+
+</script>

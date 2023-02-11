@@ -1,49 +1,3 @@
-FUNC.transationlog = function(query) {
-	F.Fs.appendFile(PATH.databases(query.db + '.log'), JSON.stringify(query) + '\n', NOOP);
-};
-
-FUNC.checksum = function(id) {
-	var sum = 0;
-	for (var i = 0; i < id.length; i++)
-		sum += id.charCodeAt(i);
-	return sum.toString(36);
-};
-
-FUNC.preparetokens = function() {
-
-	MAIN.tokens = {};
-
-	if (PREF.tokens) {
-		for (var token of PREF.tokens) {
-
-			var obj = CLONE(token);
-			if (obj.profiles && obj.profiles.length) {
-				var tmp = {};
-				for (var db of obj.profiles)
-					tmp[db] = 1;
-				obj.profiles = tmp;
-			} else
-				obj.profiles = null;
-
-			MAIN.tokens[obj.token] = obj;
-		}
-	}
-
-	if (MAIN.socket) {
-		for (var key in MAIN.socket.connections) {
-			var client = MAIN.socket.connections[key];
-			if (client.user.token !== PREF.token) {
-				var session = MAIN.tokens[client.user.token];
-				if (session)
-					client.user = session;
-				else
-					client.close(4001);
-			}
-		}
-	}
-
-};
-
 FUNC.refresh = function() {
 	MAIN.cache = {};
 	for (var key in MAIN.db.profiles) {
@@ -51,43 +5,35 @@ FUNC.refresh = function() {
 		var profile = MAIN.db.profiles[key];
 		var obj = {};
 
-		try {
-			obj.template = Tangular.compile(profile.html);
-			obj.helpers = new Function('return ' + profile.helpers)();
-			obj.secondary = profile.secondary ? new Function('return ' + profile.secondary)() : EMPTYOBJECT;
-		} catch (e) {}
+		obj.layout = FUNC.parsetemplate(profile.html || '{{ value | raw }}');
 
 		for (var key2 in profile.templates) {
 			var template = profile.templates[key2];
-			var id = key + '/' + key2 + (template.language ? ('/' + template.language) : '');
+			var id = key + '/' + key2;
+
 			MAIN.cache[id] = { profile: profile, template: template };
-			id = (profile.reference || profile.id) + '/' + (template.reference || template.id) + (template.language ? ('/' + template.language) : '');
+			id = (profile.reference || profile.id) + '/' + (template.reference || template.id);
 			try {
-				MAIN.cache[id] = { profile: profile, template: template, tlayout: obj.template, ttemplate: Tangular.compile(template.html), helpers: obj.helpers, secondary: obj.secondary };
-			} catch (e) {}
+
+				obj.template = FUNC.parsetemplate(template.html || '');
+				if (obj.layout && obj.layout.helpers) {
+					for (var key in obj.layout.helpers)
+						obj.template.helpers[key] = obj.layout.helpers[key];
+				}
+
+				MAIN.cache[id] = { profile: profile, template: template, tlayout: obj.layout, ttemplate: obj.template };
+
+			} catch (e) {
+				console.log(profile.name, e);
+			}
 		}
 	}
-};
-
-FUNC.saveconfig = function() {
-	var config = {};
-	for (var item of F.extensions)
-		config[item.id] = item.config;
-	F.Fs.writeFile(PATH.databases('extensions.json'), JSON.stringify(config), NOOP);
-};
-
-function savemeta(db) {
-	F.Fs.writeFile(PATH.databases('meta_' + db + '.json'), JSON.stringify(MAIN.meta[db] || EMPTYOBJECT), NOOP);
-}
-
-FUNC.savemeta = function(db) {
-	setTimeout2(db, savemeta, 10000, 10, db);
 };
 
 FUNC.render = function(model, $) {
 
 	var raw = model;
-	model = CONVERT(model, 'id:String, html:String, data:Object, language:String, output:String');
+	model = CONVERT(model, 'id:String, html:String, data:Object, output:String');
 
 	if (!model.id) {
 		$.invalid('Invalid template ID');
@@ -133,12 +79,10 @@ FUNC.render = function(model, $) {
 			data = {};
 
 		if (html) {
-			data.body = html;
-			html = meta.tlayout(data, meta.secondary, meta.helpers);
+			html = meta.tlayout.template({ value: html }, meta.tlayout.model, meta.tlayout.helpers);
 		} else {
-			html = meta.ttemplate(data, meta.secondary, meta.helpers);
-			data.body = html;
-			html = meta.tlayout(data, meta.secondary, meta.helpers);
+			html = meta.ttemplate.template({ value: data }, meta.tlayout.model, meta.ttemplate.helpers);
+			html = meta.tlayout.template({ value: html }, meta.tlayout.model, meta.tlayout.helpers);
 		}
 
 		var arg = {};
@@ -149,7 +93,7 @@ FUNC.render = function(model, $) {
 
 		TRANSFORM('render', arg, function() {
 
-			NOSQL('logs').insert({ profileid: meta.profile.id, templateid: meta.template.id, profile: meta.profile.name, template: meta.template.name, output: model.output || 'html', model: raw, dtcreated: NOW }).callback(() => MAIN.wapi && MAIN.wapi.send({ TYPE: 'logs', profileid: meta.profile.id }));
+			DB().insert('nosql/logs', { profileid: meta.profile.id, templateid: meta.template.id, profile: meta.profile.name, template: meta.template.name, output: model.output || 'html', model: raw, dtcreated: NOW }).callback(() => MAIN.wapi && MAIN.wapi.send({ TYPE: 'logs', profileid: meta.profile.id }));
 
 			switch (model.output) {
 				case 'pdf':
@@ -174,4 +118,37 @@ FUNC.audit = function(client, msg) {
 	msg.ip = client.ip;
 	msg.dtcreated = new Date();
 	F.Fs.appendFile(PATH.databases('audit.log'), JSON.stringify(msg) + '\n', NOOP);
+};
+
+FUNC.parsetemplate = function(body) {
+
+	var helpers = {};
+	var model = EMPTYOBJECT;
+	var strhelpers = '';
+	var beg = body.indexOf('<scr' + 'ipt>');
+	var end;
+
+	// helpers
+	if (beg !== -1) {
+		end = body.indexOf('</scr' + 'ipt>', beg + 8);
+		strhelpers = body.substring(beg + 8, end).trim();
+		body = body.substring(0, beg) + body.substring(end + 9);
+	}
+
+	// model
+	beg = body.indexOf('<scr' + 'ipt type="text/json">');
+	if (beg !== -1) {
+		end = body.indexOf('</scr' + 'ipt>', beg + 8);
+		model = (body.substring(beg + 25, end).trim()).parseJSON(true);
+		body = body.substring(0, beg) + body.substring(end + 9);
+	}
+
+	if (strhelpers)
+		new Function('Thelpers', strhelpers)(helpers);
+
+	var output = {};
+	output.helpers = helpers;
+	output.template = Tangular.compile(body.trim());
+	output.model = model;
+	return output;
 };
