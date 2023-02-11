@@ -1,4 +1,6 @@
-Hello {{ value.name | uppercase }}!
+<div style="padding:20px">
+	Hello {{ value.name | uppercase }}!
+</div>
 
 <script type="text/json">
 	{

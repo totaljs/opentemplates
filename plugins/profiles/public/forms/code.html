@@ -76,7 +76,7 @@
 			opt.items.push({ id: 'jpg', icon: 'ti ti-file-image', name: '@(Print to JPG)' });
 			opt.items.push({ id: 'docx', icon: 'ti ti-file-word', name: '@(Print to DOCX)' });
 			opt.callback = function(selected) {
-				SETTER('formdata/send', { url: '/api/printer/', data: { type: selected.id, html: preview(model.html, false) }});
+				SETTER('formdata/send', { url: QUERIFY('/api/printer/', common.api), data: { type: selected.id, html: preview(model.html, false) }});
 			};
 			SETTER('menu/show', opt);
 		};
