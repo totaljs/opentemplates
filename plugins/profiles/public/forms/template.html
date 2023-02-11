@@ -28,7 +28,7 @@
 		exports.reload = function(com) {
 			var model = exports.model;
 			var id = model ? model.id : null;
-			com.reconfigure({ title: id ? '@(Update template)' : '@(Add template)' });
+			com.reconfigure({ title: id ? '@(Update template)' : '@(Create template)' });
 		};
 
 		exports.submit = function(hide) {

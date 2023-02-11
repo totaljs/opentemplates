@@ -22,8 +22,5 @@ function http() {
 	if (typeof(payload.data) === 'string' && payload.data.isJSON())
 		payload.data = payload.data.parseJSON(true);
 
-	if (PREF.log_requests)
-		FUNC.audit($, payload);
-
 	FUNC.render(payload, $);
 }

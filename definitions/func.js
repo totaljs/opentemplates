@@ -93,7 +93,7 @@ FUNC.render = function(model, $) {
 
 		TRANSFORM('render', arg, function() {
 
-			DB().insert('nosql/logs', { profileid: meta.profile.id, templateid: meta.template.id, profile: meta.profile.name, template: meta.template.name, output: model.output || 'html', model: raw, dtcreated: NOW }).callback(() => MAIN.wapi && MAIN.wapi.send({ TYPE: 'logs', profileid: meta.profile.id }));
+			DB().insert('nosql/logs', { profileid: meta.profile.id, templateid: meta.template.id, profile: meta.profile.name, template: meta.template.name, output: model.output || 'html', model: raw, dtcreated: NOW });
 
 			switch (model.output) {
 				case 'pdf':
@@ -110,14 +110,6 @@ FUNC.render = function(model, $) {
 
 	} else
 		$.invalid('Template not found');
-};
-
-FUNC.audit = function(client, msg) {
-	msg.token = client.user.token;
-	msg.ua = client.ua;
-	msg.ip = client.ip;
-	msg.dtcreated = new Date();
-	F.Fs.appendFile(PATH.databases('audit.log'), JSON.stringify(msg) + '\n', NOOP);
 };
 
 FUNC.parsetemplate = function(body) {
