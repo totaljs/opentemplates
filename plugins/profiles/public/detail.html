@@ -172,7 +172,7 @@
 					exports.tapi('templates_html/{0}/{1} ERROR'.format(ID, id), { html: value }, exports.refresh);
 				};
 
-				SET('formcode', data);
+				SET('formcode @type:load', data);
 				SET('common.form', 'formcode');
 			});
 		};

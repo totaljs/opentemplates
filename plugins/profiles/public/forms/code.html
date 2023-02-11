@@ -26,6 +26,7 @@
 
 		var layout = null;
 		var islayout = false;
+		var error = '<code style="padding:20px;display:block;line-height:20px;font-size:14px;font-family:Menlo,Consolas,monospace">@(Unhandled error:) {0}</code>';
 
 		var preview = function(value, preview) {
 
@@ -33,6 +34,10 @@
 
 			if (value) {
 				var template = FUNC.parsetemplate(value);
+
+				if (template.error)
+					return error.format(template.error);
+
 				var second = layout ? layout.model : { preview: preview };
 
 				if (layout && layout.helpers) {
@@ -81,7 +86,10 @@
 			SETTER('menu/show', opt);
 		};
 
-		exports.watch('html', html => exports.set('preview', preview(html, true)));
+		exports.watch('html', function(value, path, type) {
+			if (type !== 'load')
+				exports.set('preview', preview(value, true));
+		});
 
 	});
 

@@ -2,6 +2,7 @@ FUNC.parsetemplate = function(body) {
 
 	var helpers = {};
 	var model = EMPTYOBJECT;
+	var output = {};
 	var strhelpers = '';
 	var beg = body.indexOf('<scr' + 'ipt>');
 	var end;
@@ -17,7 +18,17 @@ FUNC.parsetemplate = function(body) {
 	beg = body.indexOf('<scr' + 'ipt type="text/json">');
 	if (beg !== -1) {
 		end = body.indexOf('</scr' + 'ipt>', beg + 8);
-		model = PARSE(body.substring(beg + 25, end).trim());
+
+		try {
+			model = JSON.parse(body.substring(beg + 25, end).trim(), function(key, value) {
+				return typeof(value) === 'string' && value.isJSONDate() ? new Date(value) : value;
+			});
+		} catch (e) {
+			output.error = e;
+			model = {};
+			SETTER('notify/warning', 'Invalid model: ' + e.message);
+		}
+
 		body = body.substring(0, beg) + body.substring(end + 9);
 	}
 
@@ -25,10 +36,10 @@ FUNC.parsetemplate = function(body) {
 		if (strhelpers)
 			new Function('Thelpers', strhelpers)(helpers);
 	} catch (e) {
-		console.error('Tangular error', e);
+		output.error = e;
+		SETTER('notify/warning', 'Invalid helpers: ' + e.message);
 	}
 
-	var output = {};
 	output.helpers = helpers;
 	output.template = Tangular.compile(body.trim());
 	output.model = model;
