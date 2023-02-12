@@ -15,7 +15,6 @@ function index() {
 		this.redirect('/setup/');
 }
 
-
 function http() {
 
 	var $ = this;

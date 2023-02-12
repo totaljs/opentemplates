@@ -230,7 +230,7 @@ NEWSCHEMA('Profiles', function(schema) {
 		name: 'Logs',
 		permissions: 'profiles',
 		action: function($) {
-			DB().list('nosql/logs').autoquery($.query, 'id,profile,template,output,data:Object,dtcreated:Date,duration:Number,error').sort('dtcreated').callback($);
+			DB().list('nosql/logs').autoquery($.query, 'id,profile,template,output,data:Object,dtcreated:Date,duration:Number,error', 'dtcreated_desc', 100).callback($);
 		}
 	});
 

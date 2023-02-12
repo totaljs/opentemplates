@@ -32,7 +32,6 @@ NEWSCHEMA('Tokens', function(schema) {
 			MAIN.db.tokens.push(model);
 			$.success(model.id);
 			MAIN.db.save();
-			FUNC.refresh();
 		}
 	});
 
@@ -50,7 +49,7 @@ NEWSCHEMA('Tokens', function(schema) {
 				COPY(model, db[index]);
 				$.success(params.id);
 				MAIN.db.save();
-				FUNC.refresh();
+
 			} else
 				$.invalid('@(Token not found)');
 
@@ -70,7 +69,7 @@ NEWSCHEMA('Tokens', function(schema) {
 				db.splice(index, 1);
 				$.success(params.id);
 				MAIN.db.save();
-				FUNC.refresh();
+
 			} else
 				$.invalid('@(Token not found)');
 

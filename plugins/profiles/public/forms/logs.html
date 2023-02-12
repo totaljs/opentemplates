@@ -1,6 +1,6 @@
 <ui-component name="box" path="common.form" config="if:~PATH~;icon:ti ti-history;title:@(Logs);autofocus:true;reload:?/reload;closeesc:1;scrollbar:0;submit:?/submit;width:1100" class="hidden ~PATH~" plugin="~PATH~">
 	<div style="border-bottom:1px solid #E0E0E0">
-		<ui-component name="datagrid" path="?.grid" config="exec:?/filter;height:.ui-box-body;noborder:1;margin:1">
+		<ui-component name="datagrid" path="?.grid" config="exec:?/filter;height:.ui-box-body;noborder:1;margin:1;checkbox:0">
 			<script type="text/html">
 				[
 					'{{ if error }} red{{ fi }}',
