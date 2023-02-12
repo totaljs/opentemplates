@@ -6,7 +6,6 @@ WORKDIR /www
 RUN mkdir -p /www/bundles
 
 COPY index.js .
-COPY config .
 COPY package.json .
 COPY app.bundle ./bundles/
 
