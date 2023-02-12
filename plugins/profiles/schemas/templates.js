@@ -22,6 +22,8 @@ NEWSCHEMA('Templates', function(schema) {
 					obj.name = item.name;
 					obj.group = item.group;
 					obj.color = db.color;
+					obj.count = db.count;
+					obj.dtrender = db.dtrender;
 					obj.reference = (db.reference || db.id) + '/' + (item.reference || item.id);
 					arr.push(obj);
 				}
@@ -157,6 +159,8 @@ NEWSCHEMA('Templates', function(schema) {
 			item.id = UID();
 			item.name += ' (CLONED)';
 			item.reference += '_cloned';
+			item.count = 0;
+			item.dtrender = null;
 			db.templates[item.id] = item;
 
 			MAIN.db.save();

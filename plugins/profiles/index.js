@@ -21,6 +21,7 @@ exports.install = function() {
 	ROUTE('+API     /api/            +profiles_html/{id}                   *Profiles    --> html');
 	ROUTE('+API     /api/            -profiles_export/{id}                 *Profiles    --> export');
 	ROUTE('+API     /api/            +profiles_import                      *Profiles    --> import');
+	ROUTE('+API     /api/            -profiles_logs                        *Profiles    --> logs');
 
 	// Templates
 	ROUTE('+API     /api/            -templates/{profileid}                *Templates   --> list');

@@ -64,6 +64,7 @@
 													<div>
 														<div class="pull-left icon" style="{{ if m.color }}color:{{ m.color }}{{ fi }}"><i class="{{ m.icon }}"></i></div>
 														<div class="name">{{ m.name }}</div>
+														{{ if m.count }}<div class="fs12 pull-right mr10 gray">{{ m.count }}x</div>{{ fi }}
 														<div class="reference"><span class="exec" data-exec="?/copy" data-prevent="true"><i class="ti ti-copy mr5"></i>{{ m.reference }}</span></div>
 													</div>
 												</section>
@@ -83,7 +84,7 @@
 
 </ui-plugin>
 
-<ui-component name="importer" path="common.form" config="if:formtemplate;url:@{#}/_profiles/forms/template.html"></ui-component>
+<ui-component name="importer" path="common.form" config="if:formtemplate;url:@{#}/~ID~/forms/template.html"></ui-component>
 
 <script>
 	PLUGIN(function(exports) {

@@ -16,6 +16,8 @@ NEWSCHEMA('Profiles', function(schema) {
 				obj.icon = item.icon;
 				obj.color = item.color;
 				obj.reference = item.reference;
+				obj.count = item.count;
+				obj.dtrender = item.dtrender;
 				arr.push(obj);
 			}
 
@@ -48,6 +50,8 @@ NEWSCHEMA('Profiles', function(schema) {
 					sub.id = key;
 					sub.name = tmp.name;
 					sub.group = tmp.group;
+					sub.count = tmp.count;
+					sub.dtrender = tmp.dtrender;
 					sub.reference = item.reference + '/' + tmp.reference;
 					obj.templates[key] = sub;
 				}
@@ -150,6 +154,8 @@ NEWSCHEMA('Profiles', function(schema) {
 				model.id = UID();
 				model.name += ' (CLONED)';
 				model.reference += '_cloned';
+				model.count = 0;
+				model.dtrender = null;
 
 				var templates = {};
 
@@ -157,6 +163,8 @@ NEWSCHEMA('Profiles', function(schema) {
 					var template = model.templates[key];
 					template.id = UID();
 					template.profileid = model.id;
+					template.count = 0;
+					template.dtrender = null;
 					templates[template.id] = template;
 				}
 
@@ -217,5 +225,14 @@ NEWSCHEMA('Profiles', function(schema) {
 			$.success();
 		}
 	});
+
+	schema.action('logs', {
+		name: 'Logs',
+		permissions: 'profiles',
+		action: function($) {
+			DB().list('nosql/logs').autoquery($.query, 'id,profile,template,output,data:Object,dtcreated:Date,duration:Number,error').sort('dtcreated').callback($);
+		}
+	});
+
 
 });

@@ -1,0 +1,44 @@
+<ui-component name="box" path="common.form" config="if:~PATH~;icon:ti ti-history;title:@(Logs);autofocus:true;reload:?/reload;closeesc:1;scrollbar:0;submit:?/submit;width:1100" class="hidden ~PATH~" plugin="~PATH~">
+	<div style="border-bottom:1px solid #E0E0E0">
+		<ui-component name="datagrid" path="?.grid" config="exec:?/filter;height:.ui-box-body;noborder:1;margin:1">
+			<script type="text/html">
+				[
+					'{{ if error }} red{{ fi }}',
+					{ name: 'id', text: '@(ID)', hide: true },
+					{ name: 'profile', text: '@(Profile)', width: 200 },
+					{ name: 'template', text: '@(Template)', width: 250 },
+					{ name: 'output', text: '@(Output)', width: 100, align: 1, colorize: 1 },
+					{ name: 'error', text: '@(Error)', width: 220, class: 'b' },
+					{ name: 'dtcreated', text: '@(Created)', format: '[ts]', type: 'date', width: 150 }
+				]
+			</script>
+		</ui-component>
+	</div>
+	<nav>
+		<button name="cancel" style="width:100%">@(Close)</button>
+	</nav>
+</ui-component>
+
+<script>
+
+	PLUGIN(function(exports) {
+
+		exports.reload = function(com) {
+			exports.refresh();
+		};
+
+		exports.refresh = function() {
+			exports.nul('grid');
+		};
+
+		exports.filter = function(type, filter, sort, page) {
+			if (!filter)
+				filter = {};
+			filter.sort = sort;
+			filter.page = page;
+			exports.tapi(QUERIFY('profiles_logs', filter) + ' ERROR', 'grid');
+		};
+
+	});
+
+</script>

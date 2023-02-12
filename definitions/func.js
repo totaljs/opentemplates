@@ -33,7 +33,7 @@ FUNC.refresh = function() {
 FUNC.render = function(model, $) {
 
 	var raw = model;
-	model = CONVERT(model, 'id:String, html:String, data:Object, output:String');
+	model = CONVERT(model, 'id:String, data:Object, output:String');
 
 	if (!model.id) {
 		$.invalid('Invalid template ID');
@@ -41,7 +41,6 @@ FUNC.render = function(model, $) {
 	}
 
 	// model.id {String} a path to the template REF_PROFILE/REF_TEMPLATE or ID_PROFILE/ID_TEMPLATE
-	// model.html {String} optional, a custom HTML body
 	// model.data {Object} optional, additional data for the template
 
 	var meta = MAIN.cache[model.id];
@@ -72,18 +71,13 @@ FUNC.render = function(model, $) {
 		meta.profile.dtrender = NOW;
 		meta.template.dtrender = NOW;
 
-		var html = model.html || model.body;
 		var data = model.data || {};
 
 		if (typeof(data) !== 'object')
 			data = {};
 
-		if (html) {
-			html = meta.tlayout.template({ value: html }, meta.tlayout.model, meta.tlayout.helpers);
-		} else {
-			html = meta.ttemplate.template({ value: data }, meta.tlayout.model, meta.ttemplate.helpers);
-			html = meta.tlayout.template({ value: html }, meta.tlayout.model, meta.tlayout.helpers);
-		}
+		var html = meta.ttemplate.template({ value: data }, meta.tlayout.model, meta.ttemplate.helpers);
+		html = meta.tlayout.template({ value: html }, meta.tlayout.model, meta.tlayout.helpers);
 
 		var arg = {};
 
