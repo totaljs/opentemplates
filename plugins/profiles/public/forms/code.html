@@ -5,7 +5,7 @@
 	<div>
 		<ui-component name="columns" path="null" config="parent:.ui-box-body" class="hidden invisible">
 			<section data-size="50%">
-				<ui-component name="cloudeditorsimple" path="?.html" config="realtime:1;parent:parent;margin:0"></ui-component>
+				<ui-component name="cloudeditorsimple" path="?.html" config="realtime:1;parent:parent;margin:0;contextmenu:?/contextmenu;$assign:EDITOR"></ui-component>
 			</section>
 			<section>
 				<ui-component name="viewbox" path="common.form" config="parent:auto" class="invisible">
@@ -90,6 +90,24 @@
 			if (type !== 'load')
 				exports.set('preview', preview(value, true));
 		});
+
+		exports.contextmenu = function(e) {
+			var opt = {};
+			opt.x = e.x;
+			opt.y = e.y;
+			opt.items = [];
+			opt.items.push({ id: 'upload', name: '@(Upload file)', icon: 'ti ti-cloud-upload' });
+			opt.callback = function(sel) {
+				if (sel.id === 'upload') {
+					var opt = {};
+					opt.multiple = false;
+					opt.url = QUERIFY('/api/upload/', common.api);
+					opt.callback = response => EDITOR.replaceselection(response.url);
+					SETTER('fileuploader/upload', opt);
+				}
+			};
+			SETTER('menu/show', opt);
+		};
 
 	});
 
