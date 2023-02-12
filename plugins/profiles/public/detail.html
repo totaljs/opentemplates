@@ -25,61 +25,56 @@
 	</header>
 
 	<ui-component name="viewbox" config="parent:auto;margin:60" class="invisible">
-		<div>
+		<ui-component name="empty" path="?.items" config="parent:auto">
+
+			<script type="text/html">
+				<div>@(The profile doesn't contain any templates)</div>
+				<div class="mt5">
+					<span class="link exec" data-exec="?/create"><i class="ti ti-plus-circle green mr5"></i>@(Create first)</span>
+				</div>
+			</script>
+
 			<div class="padding">
-
-				<ui-component name="empty" path="?.items" config="parent:auto">
-
-					<script type="text/html">
-						<div>@(The profile doesn't contain any templates)</div>
-						<div class="mt5">
-							<span class="link exec" data-exec="?/create"><i class="ti ti-plus-circle green mr5"></i>@(Create first)</span>
-						</div>
-					</script>
-
-					<div>
-						<div class="m">
-							<div style="max-width:250px;width:100%">
-								<ui-component name="searchinput" path="?.search" config="autofocus:1;placeholder:@(Search)"></ui-component>
-							</div>
-						</div>
-						<ui-component name="search" path="?.search" config="selector:figure;datasource:?.list">
-							<ui-bind path="?.items" config="template" class="block">
-								<script type="text/html">
-									{{ foreach g in value }}
-										{{ if g.name }}
-										<div class="caption m">
-											<label>{{ g.name }}</label>
-										</div>
-										{{ else }}
-										<div style="height:5px"></div>
-										{{ fi }}
-										<div class="listing2 m grid-4 grid-md-2 grid-sm-2 grid-xs-1">
-										{{ foreach m in g.items }}
-											<figure class="exec" data-exec="?/html" data-id="{{ m.id }}" data-search="{{ m.name }}">
-												<section>
-													<div class="pull-right controls">
-														<span class="exec" data-exec="?/options" data-prevent="true"><i class="ti ti-cog"></i></span>
-													</div>
-													<div>
-														<div class="pull-left icon" style="{{ if m.color }}color:{{ m.color }}{{ fi }}"><i class="{{ m.icon }}"></i></div>
-														<div class="name">{{ m.name }}</div>
-														{{ if m.count }}<div class="fs12 pull-right mr10 gray">{{ m.count }}x</div>{{ fi }}
-														<div class="reference"><span class="exec" data-exec="?/copy" data-prevent="true"><i class="ti ti-copy mr5"></i>{{ m.reference }}</span></div>
-													</div>
-												</section>
-											</figure>
-										{{ end }}
-										</div>
-									{{ end }}
-								</script>
-							</ui-bind>
-						</ui-component>
+				<div class="m">
+					<div style="max-width:250px;width:100%">
+						<ui-component name="searchinput" path="?.search" config="autofocus:1;placeholder:@(Search)"></ui-component>
 					</div>
-
+				</div>
+				<ui-component name="search" path="?.search" config="selector:figure;datasource:?.list">
+					<ui-bind path="?.items" config="template" class="block">
+						<script type="text/html">
+							{{ foreach g in value }}
+								{{ if g.name }}
+								<div class="caption m">
+									<label>{{ g.name }}</label>
+								</div>
+								{{ else }}
+								<div style="height:5px"></div>
+								{{ fi }}
+								<div class="listing2 m grid-4 grid-md-2 grid-sm-2 grid-xs-1">
+								{{ foreach m in g.items }}
+									<figure class="exec" data-exec="?/html" data-id="{{ m.id }}" data-search="{{ m.name }}">
+										<section>
+											<div class="pull-right controls">
+												<span class="exec" data-exec="?/options" data-prevent="true"><i class="ti ti-cog"></i></span>
+											</div>
+											<div>
+												<div class="pull-left icon" style="{{ if m.color }}color:{{ m.color }}{{ fi }}"><i class="{{ m.icon }}"></i></div>
+												<div class="name">{{ m.name }}</div>
+												{{ if m.count }}<div class="fs12 pull-right mr10 gray">{{ m.count }}x</div>{{ fi }}
+												<div class="reference"><span class="exec" data-exec="?/copy" data-prevent="true"><i class="ti ti-copy mr5"></i>{{ m.reference }}</span></div>
+											</div>
+										</section>
+									</figure>
+								{{ end }}
+								</div>
+							{{ end }}
+						</script>
+					</ui-bind>
 				</ui-component>
 			</div>
-		</div>
+
+		</ui-component>
 	</ui-component>
 
 </ui-plugin>

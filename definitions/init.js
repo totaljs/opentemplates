@@ -28,8 +28,6 @@ LOADCONFIG(db.config);
 
 // Additional variables
 MAIN.cache = {};
-MAIN.tokens = {};
-MAIN.meta = {};
 
 // UI components
 COMPONENTATOR('ui', 'exec,locale,aselected,page,viewbox,input,importer,box,cloudeditorsimple,validate,loading,intranetcss,notify,message,errorhandler,empty,menu,colorpicker,icons,miniform,clipboard,approve,columns,iframepreview,search,searchinput,fileuploader,formdata,filesaver,filereader,ready,datagrid', true);

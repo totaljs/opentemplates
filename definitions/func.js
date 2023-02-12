@@ -46,16 +46,6 @@ FUNC.render = function(model, $) {
 	var meta = MAIN.cache[model.id];
 	if (meta) {
 
-		if ($.user && !$.user.sa) {
-			var access = MAIN.tokens[$.user.token];
-			if (access) {
-				if (access.profiles && !access.profiles[meta.profile.id]) {
-					$.invalid('Invalid permissions');
-					return;
-				}
-			}
-		}
-
 		NOW = new Date();
 
 		if (meta.profile.count)

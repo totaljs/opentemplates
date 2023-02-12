@@ -50,7 +50,6 @@ AUTH(function($) {
 
 });
 
-
 ON('service', function(counter) {
 	if (counter % 15 === 0)
 		DDOS = {};
