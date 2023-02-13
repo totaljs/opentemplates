@@ -5,7 +5,7 @@
 	<div>
 		<ui-component name="columns" path="null" config="parent:.ui-box-body" class="hidden invisible">
 			<section data-size="50%">
-				<ui-component name="cloudeditorsimple" path="?.html" config="realtime:1;parent:parent;margin:0;contextmenu:?/contextmenu;$assign:EDITOR"></ui-component>
+				<ui-component name="cloudeditorsimple" path="?.html" config="realtime:1;autosave:1000;parent:parent;margin:0;contextmenu:?/contextmenu;$assign:EDITOR"></ui-component>
 			</section>
 			<section>
 				<ui-component name="viewbox" path="common.form" config="parent:auto" class="invisible">
@@ -68,7 +68,7 @@
 		exports.submit = function(hide) {
 			var model = exports.model;
 			hide();
-			setTimeout(() => model.callback(model.html), 500);
+			setTimeout(() => model.callback(model.html), 1000);
 		};
 
 		exports.printer = function(el) {
@@ -97,13 +97,24 @@
 			opt.y = e.y;
 			opt.items = [];
 			opt.items.push({ id: 'upload', name: '@(Upload file)', icon: 'ti ti-cloud-upload' });
+			opt.items.push('-');
+			opt.items.push({ id: 'now', name: '@(Insert current date)', icon: 'ti ti-calendar' });
+			opt.items.push({ id: 'guid', name: '@(Insert GUID)', icon: 'ti ti-calculator' });
 			opt.callback = function(sel) {
-				if (sel.id === 'upload') {
-					var opt = {};
-					opt.multiple = false;
-					opt.url = QUERIFY('/api/upload/', common.api);
-					opt.callback = response => EDITOR.replaceselection(response.url);
-					SETTER('fileuploader/upload', opt);
+				switch (sel.id) {
+					case 'upload':
+						var opt = {};
+						opt.multiple = false;
+						opt.url = QUERIFY('/api/upload/', common.api);
+						opt.callback = response => EDITOR.replaceselection(response.url);
+						SETTER('fileuploader/upload', opt);
+						break;
+					case 'guid':
+						EDITOR.replaceselection(GUID());
+						break;
+					case 'now':
+						EDITOR.replaceselection(JSON.stringify(new Date()));
+						break;
 				}
 			};
 			SETTER('menu/show', opt);
