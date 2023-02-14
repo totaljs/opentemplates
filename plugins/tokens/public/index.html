@@ -82,7 +82,7 @@
 			var model = exports.model;
 			var id = ATTRD(el);
 			var item = model.items.findItem('id', id);
-			EXEC('-clipboard/copy', location.origin + '?/token=' + item.token);
+			EXEC('-clipboard/copy', location.origin + '/?token=' + item.token);
 			EXEC('-notify/success', '@(Copied)');
 		};
 
