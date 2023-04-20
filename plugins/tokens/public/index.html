@@ -74,7 +74,7 @@
 		};
 
 		exports.create = function() {
-			SET('formtoken @default', { token: GUID(30) });
+			SET('formtoken @default', { token: GUID(30), profiles: true });
 			SET('common.form', 'formtoken');
 		};
 

@@ -1,7 +1,8 @@
 <ui-component name="miniform" path="common.form" config="if:~PATH~;icon:ti ti-key;autofocus:true;reload:?/reload;submit:?/submit;width:400" class="hidden ~PATH~" plugin="~PATH~">
 	<div class="padding">
 		<ui-component name="input" path="?.name" config="required:1;placeholder:@(Enter a token name)" class="m">@(Name)</ui-component>
-		<ui-component name="input" path="?.token" config="required:1;camouflage:1;minlength:5;maxlength:50">@(Access token)</ui-component>
+		<ui-component name="input" path="?.token" config="required:1;camouflage:1;minlength:5;maxlength:50" class="m">@(Access token)</ui-component>
+		<ui-component name="input" path="?.profiles" config="type:checkbox">@(Allow read list of profiles)</ui-component>
 	</div>
 	<nav>
 		<ui-component name="validate" path="?">
