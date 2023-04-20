@@ -41,7 +41,12 @@ FUNC.parsetemplate = function(body) {
 	}
 
 	output.helpers = helpers;
-	output.template = Tangular.compile(body.trim());
+	try {
+		output.template = Tangular.compile(body.trim());
+	} catch (e) {
+		SETTER('notify/warning', 'Invalid template: ' + e.message);
+		output.template = () => '';
+	}
 	output.model = model;
 	return output;
 };
