@@ -234,7 +234,7 @@ NEWSCHEMA('Templates', function(schema) {
 		input: '*html, type:{pdf|docx|jpg}',
 		permissions: 'profiles',
 		action: function($, model) {
-			TotalAPI('print', { type: model.type, html: model.html }, $.controller);
+			TotalAPI('print', { type: model.type, html: model.html, margin: '10 10 10 10' }, $.controller);
 			$.controller.cancel();
 		}
 	});

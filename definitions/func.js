@@ -33,7 +33,7 @@ FUNC.refresh = function() {
 FUNC.render = function(model, $) {
 
 	var raw = model;
-	model = CONVERT(model, 'id:String, data:Object, output:String');
+	model = CONVERT(model, 'id:String, data:Object, output:String, margin:String');
 
 	if (!model.id) {
 		$.invalid('Invalid template ID');
@@ -84,7 +84,7 @@ FUNC.render = function(model, $) {
 				case 'jpg':
 				case 'png':
 				case 'docx':
-					TotalAPI('print', { type: model.output, html: arg.html }, $);
+					TotalAPI('print', { type: model.output, html: arg.html, margin: model.margin }, $);
 					break;
 				default:
 					$.content(arg.html, 'text/html');
@@ -124,7 +124,11 @@ FUNC.parsetemplate = function(body) {
 
 	var output = {};
 	output.helpers = helpers;
-	output.template = Tangular.compile(body.trim());
+	try {
+		output.template = Tangular.compile(body.trim());
+	} catch (e) {
+		output.template = () => '';
+	}
 	output.model = model;
 	return output;
 };
