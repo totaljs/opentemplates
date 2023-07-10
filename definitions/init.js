@@ -14,9 +14,6 @@ var config = db.config;
 if (!config.name)
 	config.name = 'OpenTemplates';
 
-if (!config.cdn)
-	config.cdn = '//cdn.componentator.com';
-
 // Fixed settings
 CONF.allow_custom_titles = true;
 CONF.version = '1';
@@ -25,6 +22,9 @@ CONF.op_path = '/setup/';
 
 // Loads configuration
 LOADCONFIG(db.config);
+
+if (!CONF.cdn)
+	CONF.cdn = '//cdn.componentator.com';
 
 // Additional variables
 MAIN.cache = {};
