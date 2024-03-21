@@ -1,10 +1,17 @@
 exports.install = function() {
-	ROUTE('+GET    /setup/*', setup);
+	ROUTE('+GET  /setup/*', setup);
 };
 
 function setup() {
 
 	var self = this;
+
+	if (self.user.openplatform && !self.user.iframe && self.query.openplatform) {
+		self.cookie(CONF.op_cookie, self.query.openplatform, NOW.add('12 hours'));
+		self.redirect(self.url);
+		return;
+	}
+
 	var plugins = [];
 
 	for (var key in F.plugins) {

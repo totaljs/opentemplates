@@ -36,7 +36,7 @@
 
 	<ui-component name="ready" class="invisible">
 		<div class="appmenu">
-			<span class="mainmenu exec" data-href="/"><i class="ti ti-menu"></i></span>
+			<span class="mainmenu exec" data-href="/setup/"><i class="ti ti-menu"></i></span>
 			<ui-component name="viewbox" config="parent:window;margin:44" class="invisible" style="border-top:1px solid #E0E0E0">
 				<ui-component name="aselected" path="NAV.url">
 					<ui-bind path="common.plugins" config="template">
@@ -88,7 +88,9 @@
 		common.name = '@{CONF.name}';
 		common.api = { openplatform: NAV.query.openplatform, token: NAV.query.token };
 
-		NAV.custom(true);
+		if (W.top !== W && common.openplatform || NAV.query.token)
+			NAV.custom();
+
 		NAV.clientside('.jR');
 
 		MIDDLEWARE('init', function(next) {
@@ -114,7 +116,7 @@
 
 		});
 
-		ROUTE('/', function() {
+		ROUTE('/setup/', function() {
 			SET('common.page', 'welcome');
 		});
 
@@ -127,31 +129,6 @@
 		});
 
 		ON('ready', () => $('body').rclass('invisible', 100));
-
-		// A simple integration for navigation
-		W.APP_INIT = function() {
-
-			common.ready = true;
-
-			APP.on('init', function() {
-
-				var ready = false;
-
-				ON('location', function(url) {
-					if (url === '/' && !ready)
-						ready = true;
-					else
-						APP.path(url);
-				});
-			});
-
-			APP.on('path', function(path) {
-				if (NAV.url !== path)
-					REDIRECT(path);
-			});
-
-		};
-
 		Thelpers.time=function(value){if(!value)return value;var diff=Date.now()-(value instanceof Date?value:value.parseDate()).getTime();var minutes=((diff/1000)/60)>>0;if(minutes<60){if(minutes<3)return'@(now)';return Thelpers.pluralize(minutes,'@(# minutes ago,# minute ago,# minutes ago,# minutes ago)')}var hours=(minutes/60)>>0;if(hours<24)return Thelpers.pluralize(hours,'@(# hours ago,# hour ago,# hours ago,# hours ago)');var days=(hours/24)>>0;if(days<30)return Thelpers.pluralize(days,'@(# days ago,# day ago,# days ago,# days ago)');var months=(days/29)>>0;if(months<12)return Thelpers.pluralize(months,'@(# months ago,# month ago,# months ago,# months ago)');var years=(months/12)>>0;return Thelpers.pluralize(years,'@(# years ago,# year ago,# years ago,# years ago)')};Thelpers.time2=function(value){return value?'<span class="ta-time" data-time="{0}" title="{2}">{1}</span>'.format(value.getTime(),Thelpers.time(value),value.format(null)):value};ON('knockknock',function(){$('.ta-time').each(function(){var el=$(this);el.html(Thelpers.time(new Date(+el.attrd('time'))))})});
 
 	</script>
